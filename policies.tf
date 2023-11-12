@@ -18,14 +18,14 @@ resource "aws_iam_role" "iam_for_lambda" {
   assume_role_policy = data.aws_iam_policy_document.hello_lambda_policy.json
 }
 
-resource "aws_sns_topic_policy" "default" {
-  arn = aws_sns_topic.hello_sns.arn
+resource "aws_sns_topic_policy" "hello_sns_on_success_policy" {
+  arn = aws_sns_topic.hello_sns_on_success.arn
 
-  policy = data.aws_iam_policy_document.sns_topic_policy.json
+  policy = data.aws_iam_policy_document.sns_success_topic_policy.json
 }
 
-data "aws_iam_policy_document" "sns_topic_policy" {
-  policy_id = "__default_policy_ID"
+data "aws_iam_policy_document" "sns_success_topic_policy" {
+  policy_id = "__success_policy_ID"
 
   statement {
     actions = [
@@ -49,10 +49,48 @@ data "aws_iam_policy_document" "sns_topic_policy" {
     }
 
     resources = [
-      aws_sns_topic.hello_sns.arn,
+      aws_sns_topic.hello_sns_on_success.arn,
     ]
 
-    sid = "__default_statement_ID"
+    sid = "__success_statement_ID"
+  }
+}
+
+resource "aws_sns_topic_policy" "hello_sns_on_failure_policy" {
+  arn = aws_sns_topic.hello_sns_on_failure.arn
+
+  policy = data.aws_iam_policy_document.sns_failure_topic_policy.json
+}
+
+data "aws_iam_policy_document" "sns_failure_topic_policy" {
+  policy_id = "__failure_policy_ID"
+
+  statement {
+    actions = [
+      "SNS:Subscribe",
+      "SNS:SetTopicAttributes",
+      "SNS:RemovePermission",
+      "SNS:Receive",
+      "SNS:Publish",
+      "SNS:ListSubscriptionsByTopic",
+      "SNS:GetTopicAttributes",
+      "SNS:DeleteTopic",
+      "SNS:AddPermission",
+    ]
+
+
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    resources = [
+      aws_sns_topic.hello_sns_on_failure.arn,
+    ]
+
+    sid = "__failure_statement_ID"
   }
 }
 

@@ -38,38 +38,16 @@ resource "aws_lambda_function" "hello_lambda" {
   ]
 }
 
-
-resource "aws_sns_topic" "hello_sns" {
-  name            = "hello-sns-topic"
-  delivery_policy = <<EOF
-{
-  "http": {
-    "defaultHealthyRetryPolicy": {
-      "minDelayTarget": 20,
-      "maxDelayTarget": 20,
-      "numRetries": 3,
-      "numMaxDelayRetries": 0,
-      "numNoDelayRetries": 0,
-      "numMinDelayRetries": 0,
-      "backoffFunction": "linear"
-    },
-    "disableSubscriptionOverrides": false,
-    "defaultThrottlePolicy": {
-      "maxReceivesPerSecond": 1
-    }
-  }
-}
-EOF
-}
-
 resource "aws_lambda_function_event_invoke_config" "hello_lambda_invoke" {
   function_name = aws_lambda_function.hello_lambda.function_name
 
   destination_config {
     on_success {
-      destination = aws_sns_topic.hello_sns.arn
+      destination = aws_sns_topic.hello_sns_on_success.arn
     }
-     
+    on_failure {
+      destination = aws_sns_topic.hello_sns_on_failure.arn
+    }
   }
 }
 
