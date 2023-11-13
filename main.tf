@@ -32,6 +32,7 @@ resource "aws_lambda_function" "hello_lambda" {
       REGION     = "${var.aws_region}",
     }
   }
+  timeout = 20
   depends_on = [
     aws_iam_role_policy_attachment.lambda_logs,
     aws_cloudwatch_log_group.example,
