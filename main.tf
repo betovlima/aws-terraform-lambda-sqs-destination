@@ -11,11 +11,11 @@ data "archive_file" "hello_lambda_zip" {
   output_path = "${path.module}/lambda/hello_lambda.zip"
 }
 
-data "archive_file" "destination_zip" {
-  type        = "zip"
-  source_file = "${path.module}/destination/destination_lambda.py"
-  output_path = "${path.module}/destination/destination_lambda.zip"
-}
+#data "archive_file" "destination_zip" {
+#  type        = "zip"
+#  source_file = "${path.module}/destination/destination_lambda.py"
+#  output_path = "${path.module}/destination/destination_lambda.zip"
+#}
 
 resource "aws_lambda_function" "hello_lambda" {
   function_name    = "hello_lambda"
