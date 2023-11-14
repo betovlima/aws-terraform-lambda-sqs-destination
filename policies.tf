@@ -12,9 +12,28 @@ data "aws_iam_policy_document" "hello_lambda_policy" {
   }
 }
 
- 
+data "aws_iam_policy_document" "hello_lambda_destination_policy" {
+  statement {
+    sid    = ""
+    effect = "Allow"
+
+    principals {
+      identifiers = ["lambda.amazonaws.com"]
+      type        = "Service"
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+
 resource "aws_iam_role" "iam_for_lambda" {
   name               = "iam_for_lambda"
+  assume_role_policy = data.aws_iam_policy_document.hello_lambda_policy.json
+}
+
+resource "aws_iam_role" "iam_for_lambda_destination" {
+  name               = "iam_for_lambda_destination"
   assume_role_policy = data.aws_iam_policy_document.hello_lambda_policy.json
 }
 
@@ -207,39 +226,29 @@ resource "aws_lambda_permission" "allow_terraform_bucket" {
 #  source_arn    = aws_lambda_function.hello_lambda_destination.arn # The ARN of the function to invoke
 #}
 
-resource "aws_iam_policy" "lambda_logging" {
-  name        = "hello_lambda_logging"
-  path        = "/"
-  description = "IAM policy for logging from a lambda"
-  policy      = data.aws_iam_policy_document.lambda_logging.json
-}
-
-resource "aws_iam_policy" "lambda_invoke_policy" {
-  name        = "lambda-invoke-policy"
-  description = "Policy to allow invoking any Lambda function"
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "lambda:InvokeFunction",
-      "Resource": "*"
-    }
-  ]
-}
-EOF
-}
 
 resource "aws_iam_role_policy_attachment" "lambda_destination_invoke_attachment" {
-  role       = aws_iam_role.hello_lambda_destination_iam_role.id
+  role       = aws_iam_role.hello_lambda_destination_iam_role.name
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
   role       = aws_iam_role.iam_for_lambda.name
   policy_arn = aws_iam_policy.lambda_logging.arn
+}
+
+data "aws_iam_policy" "lambda_invoke_destination_policy" {
+  name        = "${var.env_name}_lambda_destination"
+  path        = "/"
+  description = "${var.env_name}_lambda_destination"
+  policy      = data.aws_ima_policy_document.policy_document_description.ear
+}
+
+resource "aws_iam_policy" "lambda_logging" {
+  name        = "hello_lambda_logging"
+  path        = "/"
+  description = "IAM policy for logging from a lambda"
+  policy      = data.aws_iam_policy_document.lambda_logging.json
 }
 
 data "aws_iam_policy_document" "lambda_logging" {
@@ -253,5 +262,15 @@ data "aws_iam_policy_document" "lambda_logging" {
     ]
 
     resources = ["arn:aws:logs:*:*:*"]
+  }
+}
+
+data "aws_iam_policy_document" "policy_document_description" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "lambda:InvokeFunction"
+    ]
   }
 }
